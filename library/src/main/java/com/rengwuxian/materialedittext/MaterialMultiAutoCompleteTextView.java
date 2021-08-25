@@ -14,11 +14,6 @@ import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatMultiAutoCompleteTextView;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -31,6 +26,12 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatMultiAutoCompleteTextView;
 
 import com.nineoldandroids.animation.ArgbEvaluator;
 import com.nineoldandroids.animation.ObjectAnimator;
@@ -307,8 +308,8 @@ public class MaterialMultiAutoCompleteTextView extends AppCompatMultiAutoComplet
   ObjectAnimator labelAnimator;
   ObjectAnimator labelFocusAnimator;
   ObjectAnimator bottomLinesAnimator;
-  OnFocusChangeListener innerFocusChangeListener;
-  OnFocusChangeListener outerFocusChangeListener;
+  View.OnFocusChangeListener innerFocusChangeListener;
+  View.OnFocusChangeListener outerFocusChangeListener;
   private List<METValidator> validators;
   private METLengthChecker lengthChecker;
 
