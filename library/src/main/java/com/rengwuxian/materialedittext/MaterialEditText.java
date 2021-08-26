@@ -169,8 +169,6 @@ public class MaterialEditText extends AppCompatEditText {
    */
   private boolean floatingLabelAlwaysShown;
 
-  private boolean floatingLabelAlphaEnabled;
-
   /**
    * Always show the helper text, no matter if the edit text is focused. False by default.
    */
@@ -415,7 +413,6 @@ public class MaterialEditText extends AppCompatEditText {
     clearButtonBitmaps = generateIconBitmaps(R.drawable.met_ic_clear);
     iconPadding = typedArray.getDimensionPixelSize(R.styleable.MaterialEditText_met_iconPadding, getPixel(16));
     floatingLabelAlwaysShown = typedArray.getBoolean(R.styleable.MaterialEditText_met_floatingLabelAlwaysShown, false);
-    floatingLabelAlphaEnabled = typedArray.getBoolean(R.styleable.MaterialEditText_met_floatingLabelAlphaEnabled, false);
     helperTextAlwaysShown = typedArray.getBoolean(R.styleable.MaterialEditText_met_helperTextAlwaysShown, false);
     validateOnFocusLost = typedArray.getBoolean(R.styleable.MaterialEditText_met_validateOnFocusLost, false);
     checkCharactersCountAtBeginning = typedArray.getBoolean(R.styleable.MaterialEditText_met_checkCharactersCountAtBeginning, true);
@@ -1234,6 +1231,13 @@ public class MaterialEditText extends AppCompatEditText {
     }
   }
 
+  private String errorTextOnFloatingLabel;
+
+  public void showErrorOnFloatingLabel(String error) {
+    errorTextOnFloatingLabel = error;
+    postInvalidate();
+  }
+
   @Nullable
   public List<METValidator> getValidators() {
     return this.validators;
@@ -1364,12 +1368,14 @@ public class MaterialEditText extends AppCompatEditText {
 
     // draw the floating label
     if (floatingLabelEnabled && !TextUtils.isEmpty(floatingLabelText)) {
+      boolean errorTextIsEmpty = TextUtils.isEmpty(errorTextOnFloatingLabel);
+      String text = errorTextIsEmpty ? floatingLabelText.toString() : errorTextOnFloatingLabel;
       textPaint.setTextSize(floatingLabelTextSize);
       // calculate the text color
-      textPaint.setColor((Integer) focusEvaluator.evaluate(focusFraction * (isEnabled() ? 1 : 0), floatingLabelTextColor != -1 ? floatingLabelTextColor : (baseColor & 0x00ffffff | 0x44000000), primaryColor));
+      textPaint.setColor((Integer) focusEvaluator.evaluate(focusFraction * (isEnabled() ? 1 : 0), !TextUtils.isEmpty(errorTextOnFloatingLabel) ? errorColor : floatingLabelTextColor != -1 ? floatingLabelTextColor : (baseColor & 0x00ffffff | 0x44000000), primaryColor));
 
       // calculate the horizontal position
-      float floatingLabelWidth = textPaint.measureText(floatingLabelText.toString());
+      float floatingLabelWidth = textPaint.measureText(text);
       int floatingLabelStartX;
       if ((getGravity() & Gravity.RIGHT) == Gravity.RIGHT || isRTL()) {
         floatingLabelStartX = (int) (endX - floatingLabelWidth);
@@ -1381,16 +1387,14 @@ public class MaterialEditText extends AppCompatEditText {
 
       // calculate the vertical position
       int distance = floatingLabelPadding;
-      int floatingLabelStartY = (int) (innerPaddingTop + floatingLabelTextSize + floatingLabelPadding - distance * (floatingLabelAlwaysShown ? 1 : floatingLabelFraction) + getScrollY());
+      int floatingLabelStartY = (int) (innerPaddingTop + floatingLabelTextSize + floatingLabelPadding - distance * (floatingLabelAlwaysShown || !errorTextIsEmpty ? 1 : floatingLabelFraction) + getScrollY());
 
       // calculate the alpha
-      if (floatingLabelAlphaEnabled) {
-        int alpha = ((int) ((floatingLabelAlwaysShown ? 1 : floatingLabelFraction) * (0.74f * floatingLabelFraction * (isEnabled() ? 1 : 0) + 0.26f) * (floatingLabelTextColor != -1 ? 0xff : Color.alpha(floatingLabelTextColor))));
-        textPaint.setAlpha(alpha);
-      }
+      int alpha = errorTextIsEmpty ? ((int) ((floatingLabelAlwaysShown ? 1 : floatingLabelFraction) * 0xff * (0.74f * focusFraction * (isEnabled() ? 1 : 0) + 0.26f) * (floatingLabelTextColor != -1 ? 1 : Color.alpha(floatingLabelTextColor) / 256f))) : 255;
+      textPaint.setAlpha(alpha);
 
       // draw the floating label
-      canvas.drawText(floatingLabelText.toString(), floatingLabelStartX, floatingLabelStartY, textPaint);
+      canvas.drawText(text, floatingLabelStartX, floatingLabelStartY, textPaint);
     }
 
     // draw the bottom ellipsis
